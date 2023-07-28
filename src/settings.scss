@@ -1,0 +1,5 @@
+@use 'vuetify/settings' with (
+  $skeleton-loader-chip-width: 50px,
+  $skeleton-loader-image-height: 100%,
+  $skeleton-loader-background: #ffffff00
+);

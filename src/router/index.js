@@ -1,8 +1,7 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import HomePageView from '../views/HomePageView.vue'
-import MovieDetailsView from '../views/MovieDetailsView.vue'
-import MoviesView from '../views/MoviesView.vue'
-
+import { createRouter, createWebHistory } from 'vue-router';
+import HomePageView from '../views/HomePageView.vue';
+import MovieDetailsView from '../views/MovieDetailsView.vue';
+import MoviesView from '../views/MoviesView.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -23,7 +22,7 @@ const router = createRouter({
       component: MovieDetailsView,
       props: true,
     },
-  ]
-})
+  ],
+});
 
-export default router
+export default router;

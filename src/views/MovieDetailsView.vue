@@ -1,268 +1,243 @@
 <script setup>
-import { ref } from 'vue';
-import { onBeforeMount, watchEffect } from 'vue';
-import { useMovieStore } from '../stores/movieStore';
-import Modal from '../components/Modal.vue';
-import { useDownload } from '../composables/download';
+import { onBeforeMount } from 'vue';
+import { useMovieStore } from '@/stores/movieStore';
+import { storeToRefs } from 'pinia';
+import MovieHeaderSekelton from '@/components/skeletons/MovieHeaderSkeleton.vue';
+import MovieScreenSekelont from '@/components/skeletons/MovieScreenSekelont.vue';
+import MoviePlotSekeleton from '../components/skeletons/MoviePlotSekeleton.vue';
 
-
-const props = defineProps(['slug'])
-const store = useMovieStore()
-let open = ref(false)
-const movie_id = history.state.id
-
+const props = defineProps(['slug']);
+const store = useMovieStore();
+const { isLoading, movie, movies } = storeToRefs(store);
+const { getSingleMovie, getSuggestedMovies } = store;
+const movie_id = history.state.id;
+const values = {
+  movie_id,
+  with_images: true,
+  with_cast: true,
+};
 
 onBeforeMount(() => {
-    watchEffect(() => {
-        store.getMovie(movie_id)
-    })
-})
-
+  getSingleMovie(values);
+  getSuggestedMovies(values);
+});
 </script>
 
-
-
 <template>
-    <div class="wrapper" v-if="store.movie">
-        <div class="movie-summary">
-            <div class="movie-image">
-                <img class="movie-poster" :src="store.movie.medium_cover_image" alt="Movie image"> 
-                <v-btn
-                    block
-                    color="success"
-                    append-icon="mdi-download"
-                    @click="open = !open"
-                >
-                    Download
-                </v-btn>
+  <div v-if="movies.length === 0 || isLoading" class="wrapper">
+    <MovieHeaderSekelton />
+    <MovieScreenSekelont :screens="3" />
+    <MoviePlotSekeleton />
+  </div>
+  <div v-else class="wrapper">
+    <div class="movie-summary">
+      <div class="movie-image">
+        <v-img :src="movie.medium_cover_image" cover></v-img>
+      </div>
+      <div class="d-flex flex-column justify-space-between">
+        <h1>{{ store.movie.title }}</h1>
+        <div class="year-category">
+          <div class="genres">
+            <div
+              class="genre"
+              v-for="(genre, index) in movie.genres"
+              :key="index"
+            >
+              <h3 v-if="index === movie.genres.length - 1">{{ genre }}</h3>
+              <h3 v-else>{{ genre }} /</h3>
             </div>
-            <div class="movie-info">
-                <h1>{{store.movie.title}}</h1>
-                <div class="year-category">
-                    <div class="genres">
-                        <div class="genre" v-for="(genre, index) in store.movie.genres">
-                            <h3 v-if="index === store.movie.genres.length - 1">{{genre}}</h3>
-                            <h3 v-else>{{genre}} /</h3>
-                        </div>
-                    </div>
-                    <h3>{{store.movie.year}}</h3>
-                </div>
-                <div class="quality">
-                    <em>Qualities: </em>
-                    <div class="qlt">
-                        <v-chip variant="outlined" class="tag" v-for="qlt in store.movie.torrents">{{qlt.quality}}</v-chip>
-                    </div>  
-                </div>
-                <div class="rating">
-                    <div class="movie-rating">
-                        <v-icon icon="mdi-clock-outline"></v-icon>
-                        <span>{{ store.movie.runtime }}m</span>
-                    </div>
-                    <div class="movie-rating">
-                        <v-icon icon="mdi-thumb-up"></v-icon>
-                        <span>{{store.movie.like_count}}</span>
-                    </div>
-                    <div class="movie-rating">
-                        <v-icon icon="mdi-star"></v-icon>
-                        <span>{{store.movie.rating}}/10</span>
-                    </div>
-                </div>
-                <div class="keywords">
-                    <em>Keywords: </em>
-                    <div class="kw">
-                        <v-chip variant="outlined" class="tag">keywords</v-chip>
-                        <v-chip variant="outlined" class="tag">keywords</v-chip>
-                        <v-chip variant="outlined" class="tag">keywords</v-chip>
-                    </div>
-                </div>
-            </div>
-            <div class="suggested-movies">
-                <h2>Similar Movies</h2>
-                <div class="movies">
-                    <div class="movie" v-for="movie in store.movies">
-                        <RouterLink :to="{ name: 'movie-details', params: { slug: movie.slug }, state: { id: movie.id } }">
-                            <img class="image" :src="movie.medium_cover_image" alt="suggested image">
-                        </RouterLink>
-                    </div>
-                </div>
-            </div>
-           
+          </div>
+          <h3>{{ movie.year }}</h3>
         </div>
-        
-        <div class="movie-screens">
-            <div class="screen">
-                <img :src="store.movie.medium_screenshot_image1" alt="">
-            </div>
-            <div class="screen">
-                <img :src="store.movie.medium_screenshot_image2" alt="">
-            </div>
-            <div class="screen">
-                <img :src="store.movie.medium_screenshot_image3" alt="">
-            </div>
+        <div class="d-flex align-center">
+          <em class="mr-2">Qualities: </em>
+          <div class="d-flex">
+            <v-chip
+              variant="outlined"
+              class="mr-2"
+              v-for="qlt in movie.torrents"
+            >
+              {{ qlt.quality }}
+            </v-chip>
+          </div>
         </div>
-        
-        <div class="movie-plot">
-            <div class="plot-description">
-                <h3>Plot description</h3>
-                <div class="plot">
-                    <p>{{store.movie.description_full}}</p>
-                </div>
-            </div>
-            <div class="movie-staff" v-if="store.movie.cast">
-                <div class="all-cast">
-                    <h4>Top cast</h4>
-                    <div class="casts" v-for="cast in store.movie.cast">
-                        <div class="cast-info">
-                            <v-avatar :image="cast.url_small_image" size="45"></v-avatar>
-                            <div class="cast-name">
-                                {{cast.name}} as {{cast.character_name}}
-                            </div>
-                        </div>
-                        <v-divider></v-divider>
-                    </div>
-                </div>
-            </div>
+        <div class="rating">
+          <div class="movie-rating">
+            <v-icon icon="mdi-clock-outline"></v-icon>
+            <span>{{ movie.runtime }}m</span>
+          </div>
+          <div class="movie-rating">
+            <v-icon icon="mdi-thumb-up"></v-icon>
+            <span>{{ movie.like_count }}</span>
+          </div>
+          <div class="movie-rating">
+            <v-icon icon="mdi-star"></v-icon>
+            <span>{{ movie.rating }}/10</span>
+          </div>
         </div>
-         
-        <Modal :open="open" @close-modal="open = !open" width="50%">
-            <template v-slot:modal-header>
-                <h2>Choose Quality to Download</h2>
-            </template>
-            <template v-slot:modal-body>
-                <div class="downloads">
-                    <div class="movie-download" v-for="torrent in store.movie.torrents">
-                        <h3>{{ torrent.quality }}</h3>
-                        <span>File Size</span>
-                        <span>{{ torrent.size }}</span>
-                        <v-btn
-                            color="success"
-                            append-icon="mdi-download"
-                            @click="useDownload(torrent.url, store.movie.title, torrent.quality)"
-                        >
-                            Download
-                        </v-btn>
-                    </div>
-                </div>
-            </template>
-            <template v-slot:modal-footer>
-                <v-btn @click="open = !open">Close</v-btn>
-            </template>
-        </Modal>
+        <div class="d-flex align-center">
+          <em class="mr-2">Keywords: </em>
+          <div class="d-flex">
+            <v-chip
+              v-for="genre in movie.genres"
+              variant="outlined"
+              class="mr-2"
+            >
+              {{ genre }}
+            </v-chip>
+          </div>
+        </div>
+      </div>
+      <div class="suggested-movies">
+        <h2>Similar Movies</h2>
+        <div class="movies">
+          <div class="movie" v-for="movie in movies">
+            <RouterLink
+              :to="{
+                name: 'movie-details',
+                params: { slug: movie.slug },
+                state: { id: movie.id },
+              }"
+            >
+              <v-img :src="movie.medium_cover_image" cover></v-img>
+            </RouterLink>
+          </div>
+        </div>
+      </div>
     </div>
-    <div v-else>
-            content Loading ...
+    <div class="movie-screens">
+      <v-img height="250" :src="movie.medium_screenshot_image1" cover></v-img>
+      <v-img height="250" :src="movie.medium_screenshot_image2" cover></v-img>
+      <v-img height="250" :src="movie.medium_screenshot_image3" cover></v-img>
     </div>
+    <div>
+      <div v-if="movie.description_full" class="plot-description">
+        <h3 class="text-decoration-underline mb-4">Plot description</h3>
+        <div>
+          <p>{{ movie.description_full }}</p>
+        </div>
+      </div>
+
+      <div v-if="movie.cast" class="all-cast">
+        <h4>Top cast</h4>
+        <div class="casts" v-for="cast in movie.cast">
+          <div class="cast-info">
+            <v-avatar
+              color="surface-variant"
+              :image="cast.url_small_image"
+              size="45"
+            ></v-avatar>
+            <div class="cast-name">
+              {{ cast.name }} as {{ cast.character_name }}
+            </div>
+          </div>
+          <v-divider></v-divider>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
-
 <style scoped>
-.movie-download{
-    display: flex;
-    align-items: center;
-    flex-direction: column;
-    gap:2rem;
-    margin-top: 1rem;
+.movie {
+  width: 100px;
+  border: 2px #fff solid;
 }
-.downloads{
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    place-items: center;
-    gap: 1rem;
-    color: #000;
+
+.movie-image {
+  width: 250px;
+  min-height: 100%;
+}
+
+.movie-download {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  gap: 2rem;
+  margin-top: 1rem;
+}
+
+.downloads {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  place-items: center;
+  gap: 1rem;
+  color: #000;
 }
 
 .wrapper {
-    padding: 3rem 10rem 0 10rem;
+  padding: 3rem 10rem 0 10rem;
 }
+
 .movie-summary {
-    display: flex;
-    justify-content: space-between;
-    gap: 8rem;
+  display: flex;
+  justify-content: space-between;
 }
-.movie-poster {
-    border: 5px #fff solid ;
-}
+
 .year-category {
-    margin: 1.5rem 0 1.5rem 0;
+  margin: 1.5rem 0 1.5rem 0;
 }
+
 .genres {
-    display: flex;
-    gap: 0.3rem;
+  display: flex;
+  gap: 0.3rem;
 }
-.quality {
-    margin: 0 0 1.5rem 0;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-.qlt {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-}
+
 .rating {
-    margin: 0 0 1.5rem 0;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
+  margin: 0 0 1.5rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
+
 .movie-rating {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-.keywords {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
 .movie-screens {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 10px;
-    margin-top: 2rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+  margin-top: 2rem;
 }
-.screen img {
-    width: 100%;
-    height: 100%;
+
+.plot-description {
+  margin: 2rem 0 2rem 0;
 }
-.movie-plot {
-    display: flex;
-    justify-content: space-between;
-    margin: 3rem 0 3rem 0;
-    gap: 3rem;
-}
-.plot {
-    margin: 2rem 0 2rem 0;
-}
+
 .all-cast {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 2rem;
 }
+
 .casts {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
+
 .cast-info {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
+
 .cast-name {
-    font-size:15px;
-    white-space: nowrap;
-    word-break: keep-all;
+  font-size: 15px;
+  white-space: nowrap;
+  word-break: keep-all;
 }
+
 .movies {
-    display: grid;
-    grid-template-columns:  1fr 1fr;
-    gap: 0.5rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
 }
-.image {
-    border: 2px #fff solid;
-    height: 138px;
+.skeleton {
+  width: 350px;
 }
 </style>

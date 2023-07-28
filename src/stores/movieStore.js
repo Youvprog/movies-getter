@@ -1,46 +1,111 @@
-import { defineStore, storeToRefs } from 'pinia'
-import api from '../services/api'
-import { useRouter } from 'vue-router';
-
-
-
+import { defineStore } from 'pinia';
+import apiCalls from '@/services/api';
 
 export const useMovieStore = defineStore('movieStore', {
-    state: () => ({
-        isLoading: false,
-        movies: null,
-        movie: null,
-        pageNumber: 0,
-        searchLoading: false
-    }),
-    actions: {
-        async getmovies(limit, page, quality , genre , rating , sort) {
-            const router = useRouter()
-            this.isLoading = true
-            await api.fetchMovies(limit, page, quality , genre , rating , sort)
-                    .then(rep => {
-                        this.movies = rep.data.data.movies
-                        this.pageNumber = Math.ceil(rep.data.data.movie_count/rep.data.data.limit)
-                        router.push({ query: { page, quality, genre, rating, sort }})
-                    })
-                    .catch(err => {
-                        console.log(err)
-                    })
-            this.isLoading = false
-        },
-        async getMovie(id) {
-            this.isLoading = true
-            await api.fetchMovie(id)
-                    .then(rep => {
-                        this.movie = rep[0].data.data.movie
-                        this.movies = rep[1].data.data.movies
-                    })
-                    .catch(err => {
-                        console.log(err)
-                    })
-            this.isLoading = false
-        },
+  state: () => ({
+    movies: [],
+    latestMovies: [],
+    popularMovies: [],
+    highestRatedMovies: [],
+    movie: {},
+    totalMovies: 0,
+    isLoading: false,
+    error: null,
+    searchedMovies: [],
+    searchLoading: false,
+  }),
+  actions: {
+    async getMovies(limit, page, values) {
+      this.isLoading = true;
+      this.error = null;
+      try {
+        const response = await apiCalls.fetchMovies(limit, page, values);
+        if (response.status === 200) {
+          this.movies = response.data.data.movies;
+          this.totalMovies = response.data.data.movie_count;
+          this.isLoading = false;
+        }
+      } catch (error) {
+        this.isLoading = false;
+        this.error = error;
+      }
     },
-    getters: {
-    }
-})
+    async getSingleMovie(values) {
+      this.isLoading = true;
+      this.error = null;
+      try {
+        const response = await apiCalls.fetchSingleMovie(values);
+        if (response.status === 200) {
+          this.movie = response.data.data.movie;
+          this.error = null;
+          this.isLoading = false;
+        }
+      } catch (error) {
+        this.isLoading = false;
+        this.error = error;
+      }
+    },
+    async getSuggestedMovies(values) {
+      this.isLoading = true;
+      this.error = null;
+      try {
+        const response = await apiCalls.fetchSuggestedMovies(values);
+        if (response.status === 200) {
+          this.movies = response.data.data.movies;
+          this.isLoading = false;
+          this.error = null;
+        }
+      } catch (error) {
+        this.isLoading = false;
+        this.error = error;
+      }
+    },
+    async getHomePageMovies(limit, page, values, type) {
+      this.isLoading = true;
+      this.error = null;
+      try {
+        const response = await apiCalls.fetchMovies(limit, page, values);
+        console.log('this is response', response);
+        if (response.status === 200) {
+          switch (type) {
+            case 'latest':
+              this.latestMovies = response.data.data.movies;
+              break;
+            case 'popular':
+              this.popularMovies = response.data.data.movies;
+              break;
+            case 'highest_rated':
+              this.highestRatedMovies = response.data.data.movies;
+            default:
+              break;
+          }
+          this.isLoading = false;
+          this.error = null;
+        } else {
+          this.isLoading = false;
+        }
+      } catch (error) {
+        this.isLoading = false;
+        this.error = error;
+      }
+    },
+    async queryMoviesByName(limit, page, values) {
+      this.searchLoading = true;
+      this.error = null;
+      try {
+        const response = await apiCalls.fetchMovies(limit, page, values);
+        if (response.status === 200) {
+          this.searchLoading = false;
+          this.error = null;
+          this.searchedMovies = response.data.data.movies;
+        }
+      } catch (error) {
+        this.searchLoading = false;
+        this.error = error;
+      }
+    },
+  },
+  getters: {
+    pageNumber: (state) => state.totalMovies / 21,
+  },
+});
