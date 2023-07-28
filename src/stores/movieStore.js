@@ -65,7 +65,6 @@ export const useMovieStore = defineStore('movieStore', {
       this.error = null;
       try {
         const response = await apiCalls.fetchMovies(limit, page, values);
-        console.log('this is response', response);
         if (response.status === 200) {
           switch (type) {
             case 'latest':

@@ -20,7 +20,6 @@ function onClick() {
 
 watch(query, (newQuery) => {
   if (newQuery === '') return;
-  console.log(newQuery);
   queryMoviesByName(5, 1, { query_term: newQuery, minimum_rating: 7 });
 });
 </script>
