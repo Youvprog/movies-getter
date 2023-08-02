@@ -186,7 +186,7 @@ const resetFilterFields = () => {
 
 @media (max-width: 606px) {
   .movies-container {
-    padding: 2rem;
+    padding: 4rem;
   }
   .movie-container {
     width: 180px;
@@ -199,7 +199,9 @@ const resetFilterFields = () => {
     padding: 1rem;
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 2rem;
+    row-gap: 5rem;
+    column-gap: 1rem;
+    margin: 0 0 2rem 0;
   }
   .movie-container {
     width: 130px;

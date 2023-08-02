@@ -58,7 +58,7 @@ watch(query, (newQuery) => {
         </v-text-field>
       </div>
       <v-btn
-        v-if="width < isMobile"
+        v-if="width < isMobile && route.path === '/movies'"
         :prepend-icon="'mdi-movie-search-outline'"
         @click="toggleFilters"
       ></v-btn>
