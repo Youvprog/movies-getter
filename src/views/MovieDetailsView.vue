@@ -2,6 +2,7 @@
 import { onBeforeMount } from 'vue';
 import { useMovieStore } from '@/stores/movieStore';
 import { storeToRefs } from 'pinia';
+import { useDownload } from '@/composables/useDownload';
 import MovieHeaderSekelton from '@/components/skeletons/MovieHeaderSkeleton.vue';
 import MovieScreenSekelont from '@/components/skeletons/MovieScreenSekelont.vue';
 import MoviePlotSekeleton from '../components/skeletons/MoviePlotSekeleton.vue';
@@ -52,15 +53,17 @@ onBeforeMount(() => {
         <div class="d-flex align-center">
           <em class="mr-2">Qualities: </em>
           <div class="d-flex">
-            <v-chip
-              class="mr-2 pa-4"
-              label
-              color="green"
-              v-for="qlt in movie.torrents"
-            >
-              <v-icon start icon="mdi-download-box-outline"></v-icon>
-              {{ qlt.quality }}
-            </v-chip>
+            <div class="chip" v-for="torrent in movie.torrents">
+              <v-chip
+                class="mr-2 pa-4"
+                label
+                color="green"
+                @click="useDownload(torrent.url, movie.title, torrent.quality)"
+              >
+                <v-icon start icon="mdi-download-box-outline"></v-icon>
+                {{ torrent.quality }}
+              </v-chip>
+            </div>
           </div>
         </div>
         <div class="rating">
