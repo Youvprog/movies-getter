@@ -16,7 +16,7 @@ const store = useMovieStore();
 const { movies, pageNumber, isLoading, totalMovies } = storeToRefs(store);
 const { getMovies } = store;
 const { width } = useDisplay();
-const limit = 24;
+const limit = 28;
 const isMobile = 606;
 const page = ref(1);
 const values = reactive({
@@ -177,18 +177,11 @@ const resetFilterFields = () => {
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   place-items: center;
   gap: 4rem;
-  padding: 5rem 10rem;
+  padding: 5rem 8rem;
 }
 
 .pagination {
   padding: 0 0 2rem 0;
-}
-
-.mobile-fields {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  place-items: center;
-  gap: 1rem;
 }
 
 @media (max-width: 606px) {
@@ -201,13 +194,16 @@ const resetFilterFields = () => {
   }
 }
 
-@media (max-width: 350px) {
-  .mobile-fields {
-    display: flex;
-    flex-direction: column;
-  }
+@media (max-width: 488px) {
   .movies-container {
-    padding: 1rem 0 0 0;
+    padding: 1rem;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+  }
+  .movie-container {
+    width: 130px;
+    height: 220px;
   }
 }
 </style>
