@@ -2,7 +2,7 @@
   <div class="wrapper">
     <v-parallax src="popcorn.jpg">
       <div class="hero">
-        <h1>Any movie you want, WE GOT IT!</h1>
+        <h1 class="text-center">Any movie you want, WE GOT IT!</h1>
         <MoviesSectionSkeleton :limit="limit" v-if="isLoading" />
         <MoviesSection
           v-else
@@ -45,7 +45,7 @@ const store = useMovieStore();
 const { getHomePageMovies } = store;
 const { latestMovies, popularMovies, highestRatedMovies, isLoading } =
   storeToRefs(store);
-const limit = 7;
+const limit = 6;
 const page = 1;
 
 onBeforeMount(() => {
@@ -65,6 +65,6 @@ onBeforeMount(() => {
 }
 
 .movies-section-wrapper {
-  padding: 5rem;
+  padding: 2rem;
 }
 </style>

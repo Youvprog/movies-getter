@@ -53,10 +53,12 @@ onBeforeMount(() => {
           <em class="mr-2">Qualities: </em>
           <div class="d-flex">
             <v-chip
-              variant="outlined"
-              class="mr-2"
+              class="mr-2 pa-4"
+              label
+              color="green"
               v-for="qlt in movie.torrents"
             >
+              <v-icon start icon="mdi-download-box-outline"></v-icon>
               {{ qlt.quality }}
             </v-chip>
           </div>
@@ -67,11 +69,11 @@ onBeforeMount(() => {
             <span>{{ movie.runtime }}m</span>
           </div>
           <div class="movie-rating">
-            <v-icon icon="mdi-thumb-up"></v-icon>
+            <v-icon color="info" icon="mdi-thumb-up"></v-icon>
             <span>{{ movie.like_count }}</span>
           </div>
           <div class="movie-rating">
-            <v-icon icon="mdi-star"></v-icon>
+            <v-icon color="yellow-darken-3" icon="mdi-star"></v-icon>
             <span>{{ movie.rating }}/10</span>
           </div>
         </div>
@@ -146,9 +148,7 @@ onBeforeMount(() => {
 
 .movie-image {
   width: 250px;
-  min-height: 100%;
 }
-
 .movie-download {
   display: flex;
   align-items: center;
@@ -236,8 +236,5 @@ onBeforeMount(() => {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0.5rem;
-}
-.skeleton {
-  width: 350px;
 }
 </style>

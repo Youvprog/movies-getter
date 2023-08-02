@@ -2,15 +2,22 @@
 import { ref, onBeforeMount, reactive, onUnmounted, watch } from 'vue';
 import { useMovieStore } from '@/stores/movieStore';
 import { storeToRefs } from 'pinia';
+import { useDisplay } from 'vuetify';
 import Movie from '@/components/Movie.vue';
 import MovieCardSkeleton from '@/components/skeletons/MovieCardSkeleton.vue';
 import Filter from '@/components/Filter.vue';
 import { filters } from '../data/filterData';
+import MobileFilters from '@/components/MobileFilters.vue';
 
+const props = defineProps({
+  openFilters: Boolean,
+});
 const store = useMovieStore();
-const { movies, pageNumber, isLoading } = storeToRefs(store);
+const { movies, pageNumber, isLoading, totalMovies } = storeToRefs(store);
 const { getMovies } = store;
-const limit = 21;
+const { width } = useDisplay();
+const limit = 24;
+const isMobile = 606;
 const page = ref(1);
 const values = reactive({
   query_term: '',
@@ -36,7 +43,7 @@ const searchByQueryField = () => {
   if (values.query_term === '') {
     return;
   }
-  getMovies(limit, page.value, values.query_term);
+  getMovies(limit, page.value, { query_term: values.query_term });
 };
 
 const searchByFields = () => {
@@ -54,9 +61,6 @@ const searchByFields = () => {
 };
 
 const resetFilterFields = () => {
-  if (Object.values(values).some((value) => value === 'All')) {
-    return;
-  }
   values.query_term = '';
   values.quality = 'All';
   values.genre = 'All';
@@ -69,7 +73,15 @@ const resetFilterFields = () => {
 <template>
   <div class="wrapper">
     <div class="main-filter">
-      <div class="filter-container">
+      <div class="mobile-filters" v-if="props.openFilters">
+        <MobileFilters
+          :values="values"
+          :searchByFields="searchByFields"
+          :searchByQueryField="searchByQueryField"
+          :resetFilterFields="resetFilterFields"
+        />
+      </div>
+      <div v-if="width > isMobile" class="filter-container">
         <div class="search-bar">
           <v-text-field
             label="Search a movie..."
@@ -102,21 +114,21 @@ const resetFilterFields = () => {
         </div>
       </div>
     </div>
-    <div v-if="isLoading" class="movies-container">
+    <div v-if="isLoading" class="w-100 movies-container">
       <div class="movie-container" v-for="n in limit" :key="n">
         <MovieCardSkeleton />
       </div>
     </div>
-    <div v-else class="movies-container">
+    <div v-else class="w-100 movies-container">
       <div class="movie-container" v-for="movie in movies" :key="movie.id">
         <Movie :movie="movie" />
       </div>
     </div>
-    <div class="text-center pagination">
+    <div v-if="totalMovies > limit" class="text-center pagination">
       <v-pagination
         v-model="page"
         :length="pageNumber"
-        :total-visible="7"
+        :total-visible="width <= isMobile ? 1 : 7"
       ></v-pagination>
     </div>
   </div>
@@ -145,13 +157,6 @@ const resetFilterFields = () => {
   justify-content: space-between;
 }
 
-.filter {
-  width: 150px;
-  display: flex;
-  flex-direction: column;
-  gap: 0.8rem;
-}
-
 .filter-btn {
   display: flex;
   justify-content: center;
@@ -163,16 +168,46 @@ const resetFilterFields = () => {
   flex-direction: column;
   align-items: center;
 }
-
+.movie-container {
+  width: 230px;
+  height: 350px;
+}
 .movies-container {
-  display: flex;
-  justify-content: center;
-  gap: 1rem;
-  flex-wrap: wrap;
-  padding: 3rem 5rem 3rem 5rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  place-items: center;
+  gap: 4rem;
+  padding: 5rem 10rem;
 }
 
 .pagination {
   padding: 0 0 2rem 0;
+}
+
+.mobile-fields {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  place-items: center;
+  gap: 1rem;
+}
+
+@media (max-width: 606px) {
+  .movies-container {
+    padding: 2rem;
+  }
+  .movie-container {
+    width: 180px;
+    height: 250px;
+  }
+}
+
+@media (max-width: 350px) {
+  .mobile-fields {
+    display: flex;
+    flex-direction: column;
+  }
+  .movies-container {
+    padding: 1rem 0 0 0;
+  }
 }
 </style>

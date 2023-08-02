@@ -1,5 +1,6 @@
 <script setup>
 import { RouterLink, RouterView } from 'vue-router';
+import { useDisplay } from 'vuetify';
 import { ref, watch } from 'vue';
 import { useMovieStore } from './stores/movieStore';
 import { storeToRefs } from 'pinia';
@@ -9,10 +10,23 @@ import useDebouncedToRed from './composables/useDebouncedRef';
 const route = useRoute();
 const store = useMovieStore();
 const theme = ref('dark');
+const { width } = useDisplay();
 const query = useDebouncedToRed('', 500);
 const { searchedMovies } = storeToRefs(store);
 const { queryMoviesByName } = store;
 const icons = ['mdi-facebook', 'mdi-twitter', 'mdi-instagram'];
+const openFilters = ref(false);
+const isMobile = 606;
+
+const toggleFilters = () => {
+  openFilters.value = !openFilters.value;
+};
+
+watch(width, (newWidth) => {
+  if (newWidth > 606) {
+    openFilters.value = false;
+  }
+});
 
 function onClick() {
   theme.value = theme.value === 'dark' ? 'light' : 'dark';
@@ -30,7 +44,7 @@ watch(query, (newQuery) => {
       <template v-slot:prepend>
         <RouterLink to="/" class="link">Movies</RouterLink>
       </template>
-      <div class="search">
+      <div v-if="width > isMobile" class="search">
         <v-text-field
           v-model="query"
           :loading="store.searchLoading"
@@ -43,6 +57,11 @@ watch(query, (newQuery) => {
         >
         </v-text-field>
       </div>
+      <v-btn
+        v-if="width < isMobile"
+        :prepend-icon="'mdi-movie-search-outline'"
+        @click="toggleFilters"
+      ></v-btn>
       <RouterLink to="/movies" class="link">
         <v-btn :prepend-icon="'mdi-movie-open-outline'"></v-btn>
       </RouterLink>
@@ -76,7 +95,7 @@ watch(query, (newQuery) => {
           </RouterLink>
         </div>
       </div>
-      <RouterView :key="route.path" />
+      <RouterView :key="route.path" :openFilters="openFilters" />
     </v-main>
     <v-footer class="text-center d-flex flex-column">
       <div>

@@ -105,6 +105,6 @@ export const useMovieStore = defineStore('movieStore', {
     },
   },
   getters: {
-    pageNumber: (state) => state.totalMovies / 21,
+    pageNumber: (state) => Math.ceil(state.totalMovies / 24),
   },
 });
